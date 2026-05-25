@@ -79,6 +79,7 @@
     (expresion (primitiva-unaria "(" expresion ")") primapp-un-exp)
     (expresion ("Si" expresion "{" expresion "}" "sino" "{" expresion "}") condicional-exp)
     (expresion ("declarar" "(" (arbno identificador "=" expresion ";") ")" "{" expresion "}") variableLocal-exp)
+    (expresion ("procedimiento" "("(separated-list identificador ",")")" "{" expresion "}") procedimiento-exp)
 
 
     
@@ -161,7 +162,12 @@
                      
       (variableLocal-exp (ids exps cuerpo)
                          (let ((args (eval-exps exps amb)))
-                            (evaluar-expresion cuerpo (extend-env ids args amb)))))))
+                            (evaluar-expresion cuerpo (extend-env ids args amb))))
+
+      (procedimiento-exp (listIDs cuerpo)
+                         (cerradura listIDs cuerpo amb))
+                         
+      )))
       
 
 ;apply-primitive: <primitiva> <list-of-expression> -> numero
@@ -286,5 +292,12 @@
 (define valor-verdad? (lambda (valor)
           (if (equal? valor 0) #f #t)))
 
-    (interpretador)
+
+;;Punto 6
+
+(define-datatype procVal procVal?
+  (cerradura (lista-ID (list-of symbol?)) (exp expresion?) (amb environment?)))
+
+
+(interpretador)
 
