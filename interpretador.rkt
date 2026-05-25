@@ -43,7 +43,7 @@
 ;; <primitiva-unaria> :=  longitud (primitiva-longitud)
 ;;                    :=  add1 (primitiva-add1)
 ;;                    :=  sub1 (primitiva-sub1)
-;;                    := neg (primitiva-negacion-booleana)
+;;                    :=  neg (primitiva-negacion-booleana)
 
 
 
@@ -77,6 +77,7 @@
     (expresion (identificador) var-exp)
     (expresion ("(" expresion primitiva-binaria expresion ")") primapp-bin-exp)
     (expresion (primitiva-unaria "(" expresion ")") primapp-un-exp)
+    (expresion ("declarar" "(" (arbno identificador "=" expresion ";") ")" "{" expresion "}") variableLocal-exp)
 
     
     (primitiva-binaria ("+") primitiva-suma)
@@ -139,12 +140,15 @@
       (texto-lit (txt) txt)
       (var-exp (id) (buscar-variable amb id))
       (primapp-bin-exp (exp1 prim-binaria exp2)
-                   (let ((arg1 (evaluar-expresion exp1 amb))
-                         (arg2 (evaluar-expresion exp2 amb)))
-                     (apply-primitive-bin prim-binaria arg1 arg2)))
+                       (let ((arg1 (evaluar-expresion exp1 amb))
+                             (arg2 (evaluar-expresion exp2 amb)))
+                         (apply-primitive-bin prim-binaria arg1 arg2)))
       (primapp-un-exp (prim-unaria expr)
-                   (let ((arg (evaluar-expresion expr amb)))
-                     (apply-primitive-un prim-unaria arg)))
+                      (let ((arg (evaluar-expresion expr amb)))
+                        (apply-primitive-un prim-unaria arg)))
+      (variableLocal-exp (ids exps cuerpo)
+                         (let ((args (eval-exps exps amb)))
+                            (evaluar-expresion cuerpo (extend-env ids args amb))))
       )))
 
 ;apply-primitive: <primitiva> <list-of-expression> -> numero
@@ -155,7 +159,7 @@
       (primitiva-resta () (- arg1 arg2))
       (primitiva-div () (/ arg1 arg2))
       (primitiva-multi () (* arg1 arg2))
-      (primitiva-concat () ((cons arg1 arg2)))
+      (primitiva-concat () (string-append arg1 arg2))
       (primitiva-mayor () (if (> arg1 arg2)
                               1
                               0))
@@ -186,6 +190,12 @@
                                           1
                                           0))
       )))
+
+; funcion auxiliar para aplicar evaluar-expresion a cada elemento de una 
+; lista de operandos (expresiones)
+(define eval-exps
+  (lambda (exps amb)
+    (map (lambda (x) (evaluar-expresion x amb)) exps)))
 
 
 ;*******************************************************************************************
@@ -263,4 +273,8 @@
           (if (comparacion arg1 arg2) 1 0)
           
           ) )
+
+;****************************************************************************************
+
+
 (interpretador)
