@@ -43,7 +43,7 @@
 ;; <primitiva-unaria> :=  longitud (primitiva-longitud)
 ;;                    :=  add1 (primitiva-add1)
 ;;                    :=  sub1 (primitiva-sub1)
-;;                    := neg (primitiva-negacion-booleana)
+;;                    :=  neg (primitiva-negacion-booleana)
 
 
 
@@ -77,8 +77,12 @@
     (expresion (identificador) var-exp)
     (expresion ("(" expresion primitiva-binaria expresion ")") primapp-bin-exp)
     (expresion (primitiva-unaria "(" expresion ")") primapp-un-exp)
+<<<<<<< HEAD
     (expresion ("Si" expresion "{" expresion "}" "sino" "{" expresion "}") condicional-exp)
     
+=======
+    (expresion ("declarar" "(" (arbno identificador "=" expresion ";") ")" "{" expresion "}") variableLocal-exp)
+>>>>>>> b2b579ca665c00fd6c90ba372ef8446c3bd2612b
 
     
     (primitiva-binaria ("+") primitiva-suma)
@@ -141,10 +145,11 @@
       (texto-lit (txt) txt)
       (var-exp (id) (buscar-variable amb id))
       (primapp-bin-exp (exp1 prim-binaria exp2)
-                   (let ((arg1 (evaluar-expresion exp1 amb))
-                         (arg2 (evaluar-expresion exp2 amb)))
-                     (apply-primitive-bin prim-binaria arg1 arg2)))
+                       (let ((arg1 (evaluar-expresion exp1 amb))
+                             (arg2 (evaluar-expresion exp2 amb)))
+                         (apply-primitive-bin prim-binaria arg1 arg2)))
       (primapp-un-exp (prim-unaria expr)
+<<<<<<< HEAD
                    (let ((arg (evaluar-expresion expr amb)))
                      (apply-primitive-un prim-unaria arg)))
 
@@ -157,6 +162,14 @@
                        )
       
       ))))
+=======
+                      (let ((arg (evaluar-expresion expr amb)))
+                        (apply-primitive-un prim-unaria arg)))
+      (variableLocal-exp (ids exps cuerpo)
+                         (let ((args (eval-exps exps amb)))
+                            (evaluar-expresion cuerpo (extend-env ids args amb))))
+      )))
+>>>>>>> b2b579ca665c00fd6c90ba372ef8446c3bd2612b
 
 ;apply-primitive: <primitiva> <list-of-expression> -> numero
 (define apply-primitive-bin
@@ -166,7 +179,11 @@
       (primitiva-resta () (- arg1 arg2))
       (primitiva-div () (/ arg1 arg2))
       (primitiva-multi () (* arg1 arg2))
+<<<<<<< HEAD
       (primitiva-concat () (cons arg1 arg2))
+=======
+      (primitiva-concat () (string-append arg1 arg2))
+>>>>>>> b2b579ca665c00fd6c90ba372ef8446c3bd2612b
       (primitiva-mayor () (if (> arg1 arg2)
                               1
                               0))
@@ -197,6 +214,12 @@
                                           1
                                           0))
       )))
+
+; funcion auxiliar para aplicar evaluar-expresion a cada elemento de una 
+; lista de operandos (expresiones)
+(define eval-exps
+  (lambda (exps amb)
+    (map (lambda (x) (evaluar-expresion x amb)) exps)))
 
 
 ;*******************************************************************************************
@@ -270,7 +293,19 @@
 ;****************************************************************************************
 ;;Punto 3
 
+<<<<<<< HEAD
 (define valor-verdad? (lambda (valor)
           (if (equal? valor 0) #f #t)))
 
     (interpretador)
+=======
+(define valor-verdad? (lambda (arg1 comparacion arg2)
+          (if (comparacion arg1 arg2) 1 0)
+          
+          ) )
+
+;****************************************************************************************
+
+
+(interpretador)
+>>>>>>> b2b579ca665c00fd6c90ba372ef8446c3bd2612b
