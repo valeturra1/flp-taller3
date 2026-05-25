@@ -77,7 +77,12 @@
     (expresion (identificador) var-exp)
     (expresion ("(" expresion primitiva-binaria expresion ")") primapp-bin-exp)
     (expresion (primitiva-unaria "(" expresion ")") primapp-un-exp)
+<<<<<<< HEAD
+    (expresion ("Si" expresion "{" expresion "}" "sino" "{" expresion "}") condicional-exp)
+    
+=======
     (expresion ("declarar" "(" (arbno identificador "=" expresion ";") ")" "{" expresion "}") variableLocal-exp)
+>>>>>>> b2b579ca665c00fd6c90ba372ef8446c3bd2612b
 
     
     (primitiva-binaria ("+") primitiva-suma)
@@ -144,12 +149,27 @@
                              (arg2 (evaluar-expresion exp2 amb)))
                          (apply-primitive-bin prim-binaria arg1 arg2)))
       (primapp-un-exp (prim-unaria expr)
+<<<<<<< HEAD
+                   (let ((arg (evaluar-expresion expr amb)))
+                     (apply-primitive-un prim-unaria arg)))
+
+      (condicional-exp (test-exp true-exp false-exp)
+                       (let(
+                            (base (evaluar-expresion test-exp amb))
+                            )
+                         (if (valor-verdad? base) (evaluar-expresion true-exp amb) (evaluar-expresion false-exp amb)) 
+                         
+                       )
+      
+      ))))
+=======
                       (let ((arg (evaluar-expresion expr amb)))
                         (apply-primitive-un prim-unaria arg)))
       (variableLocal-exp (ids exps cuerpo)
                          (let ((args (eval-exps exps amb)))
                             (evaluar-expresion cuerpo (extend-env ids args amb))))
       )))
+>>>>>>> b2b579ca665c00fd6c90ba372ef8446c3bd2612b
 
 ;apply-primitive: <primitiva> <list-of-expression> -> numero
 (define apply-primitive-bin
@@ -159,7 +179,11 @@
       (primitiva-resta () (- arg1 arg2))
       (primitiva-div () (/ arg1 arg2))
       (primitiva-multi () (* arg1 arg2))
+<<<<<<< HEAD
+      (primitiva-concat () (cons arg1 arg2))
+=======
       (primitiva-concat () (string-append arg1 arg2))
+>>>>>>> b2b579ca665c00fd6c90ba372ef8446c3bd2612b
       (primitiva-mayor () (if (> arg1 arg2)
                               1
                               0))
@@ -269,6 +293,12 @@
 ;****************************************************************************************
 ;;Punto 3
 
+<<<<<<< HEAD
+(define valor-verdad? (lambda (valor)
+          (if (equal? valor 0) #f #t)))
+
+    (interpretador)
+=======
 (define valor-verdad? (lambda (arg1 comparacion arg2)
           (if (comparacion arg1 arg2) 1 0)
           
@@ -278,3 +308,4 @@
 
 
 (interpretador)
+>>>>>>> b2b579ca665c00fd6c90ba372ef8446c3bd2612b
