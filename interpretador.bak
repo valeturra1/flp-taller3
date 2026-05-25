@@ -257,10 +257,5 @@
 
 
 ;****************************************************************************************
-;;Punto 3
 
-(define valor-verdad? (lambda (arg1 comparacion arg2)
-          (if (comparacion arg1 arg2) 1 0)
-          
-          ) )
 (interpretador)
