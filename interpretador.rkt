@@ -77,6 +77,8 @@
     (expresion (identificador) var-exp)
     (expresion ("(" expresion primitiva-binaria expresion ")") primapp-bin-exp)
     (expresion (primitiva-unaria "(" expresion ")") primapp-un-exp)
+    (expresion ("Si" expresion "{" expresion "}" "sino" "{" expresion "}") condicional-exp)
+    
 
     
     (primitiva-binaria ("+") primitiva-suma)
@@ -145,7 +147,16 @@
       (primapp-un-exp (prim-unaria expr)
                    (let ((arg (evaluar-expresion expr amb)))
                      (apply-primitive-un prim-unaria arg)))
-      )))
+
+      (condicional-exp (test-exp true-exp false-exp)
+                       (let(
+                            (base (evaluar-expresion test-exp amb))
+                            )
+                         (if (valor-verdad? base) (evaluar-expresion true-exp amb) (evaluar-expresion false-exp amb)) 
+                         
+                       )
+      
+      ))))
 
 ;apply-primitive: <primitiva> <list-of-expression> -> numero
 (define apply-primitive-bin
@@ -155,7 +166,7 @@
       (primitiva-resta () (- arg1 arg2))
       (primitiva-div () (/ arg1 arg2))
       (primitiva-multi () (* arg1 arg2))
-      (primitiva-concat () ((cons arg1 arg2)))
+      (primitiva-concat () (cons arg1 arg2))
       (primitiva-mayor () (if (> arg1 arg2)
                               1
                               0))
@@ -259,8 +270,7 @@
 ;****************************************************************************************
 ;;Punto 3
 
-(define valor-verdad? (lambda (arg1 comparacion arg2)
-          (if (comparacion arg1 arg2) 1 0)
-          
-          ) )
-(interpretador)
+(define valor-verdad? (lambda (valor)
+          (if (equal? valor 0) #f #t)))
+
+    (interpretador)
