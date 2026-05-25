@@ -68,10 +68,10 @@
    (letter (arbno (or letter digit "_"))) string)))
 
 
-;; Gramática
+;; Especificación sintáctica (gramática)
 
 (define gramatica
-  '((program (expresion) un-programa)
+  '((programa (expresion) un-programa)
     (expresion (numero) numero-lit)
     (expresion ("\"" texto "\"") texto-lit)
     (expresion (identificador) var-exp)
@@ -96,3 +96,166 @@
     (primitiva-unaria ("add1") primitiva-add1)
     (primitiva-unaria ("sub1") primitiva-sub1)
     (primitiva-unaria ("neg") primitiva-negacion-booleana)))
+
+;******************************************************************************************
+
+;; Construidos automáticamente:
+
+(sllgen:make-define-datatypes especificacion-lex gramatica)
+
+;******************************************************************************************
+
+;; El FrontEnd (Análisis léxico (scanner) y sintáctico (parser) integrados)
+
+(define scan&parse
+  (sllgen:make-string-parser especificacion-lex gramatica))
+
+;El Interpretador (FrontEnd + Evaluación + señal para lectura )
+
+(define interpretador
+  (sllgen:make-rep-loop  "--> "
+    (lambda (pgm) (eval-program  pgm)) 
+    (sllgen:make-stream-parser especificacion-lex gramatica)))
+
+;******************************************************************************************
+
+;El Interprete
+
+;evaluar-programa: <programa> -> numero
+; función que evalúa un programa teniendo en cuenta un ambiente dado (se inicializa dentro del programa)
+
+(define eval-program
+  (lambda (pgm)
+    (cases programa pgm
+      (un-programa (body)
+                 (evaluar-expresion body (init-env))))))
+
+;; evaluar-expresion: <expresion> <ambiente> -> numero
+;; evalua la expresión en el ambiente de entrada
+(define evaluar-expresion
+  (lambda (exp amb)
+    (cases expresion exp
+      (numero-lit (num) num)
+      (texto-lit (txt) txt)
+      (var-exp (id) (buscar-variable amb id))
+      (primapp-bin-exp (exp1 prim-binaria exp2)
+                   (let ((arg1 (evaluar-expresion exp1 amb))
+                         (arg2 (evaluar-expresion exp2 amb)))
+                     (apply-primitive-bin prim-binaria arg1 arg2)))
+      (primapp-un-exp (prim-unaria expr)
+                   (let ((arg (evaluar-expresion expr amb)))
+                     (apply-primitive-un prim-unaria arg)))
+      )))
+
+;apply-primitive: <primitiva> <list-of-expression> -> numero
+(define apply-primitive-bin
+  (lambda (prim arg1 arg2)
+    (cases primitiva-binaria prim
+      (primitiva-suma () (+ arg1 arg2))
+      (primitiva-resta () (- arg1 arg2))
+      (primitiva-div () (/ arg1 arg2))
+      (primitiva-multi () (* arg1 arg2))
+      (primitiva-concat () ((cons arg1 arg2)))
+      (primitiva-mayor () (if (> arg1 arg2)
+                              1
+                              0))
+      (primitiva-menor () (if (< arg1 arg2)
+                              1
+                              0))
+      (primitiva-mayor-igual () (if (>= arg1 arg2)
+                              1
+                              0))
+      (primitiva-menor-igual () (if (<= arg1 arg2)
+                              1
+                              0))
+      (primitiva-diferente () (if (not (equal? arg1 arg2))
+                              1
+                              0))
+      (primitiva-comparador-igual () (if (equal? arg1 arg2)
+                                     1
+                                     0))
+      )))
+
+(define apply-primitive-un
+  (lambda (prim arg)
+    (cases primitiva-unaria prim
+      (primitiva-longitud () (string-length arg))
+      (primitiva-add1 () (+ arg 1))
+      (primitiva-sub1 () (- arg 1))
+      (primitiva-negacion-booleana () (if (equal? arg 0)
+                                          1
+                                          0))
+      )))
+
+
+;*******************************************************************************************
+;Ambientes
+
+;definición del tipo de dato ambiente
+(define-datatype environment environment?
+  (empty-env-record)
+  (extended-env-record (syms (list-of symbol?))
+                       (vals (list-of scheme-value?))
+                       (env environment?)))
+
+(define scheme-value? (lambda (v) #t))
+
+;empty-env:      -> enviroment
+;función que crea un ambiente vacío
+(define empty-env  
+  (lambda ()
+    (empty-env-record)))       ;llamado al constructor de ambiente vacío 
+
+
+;extend-env: <list-of symbols> <list-of numbers> enviroment -> enviroment
+;función que crea un ambiente extendido
+(define extend-env
+  (lambda (syms vals env)
+    (extended-env-record syms vals env)))
+
+;****************************************************************************************
+;Funciones Auxiliares
+
+; funciones auxiliares para encontrar la posición de un símbolo
+; en la lista de símbolos de unambiente
+
+(define list-find-position
+  (lambda (sym los)
+    (list-index (lambda (sym1) (eqv? sym1 sym)) los)))
+
+(define list-index
+  (lambda (pred ls)
+    (cond
+      ((null? ls) #f)
+      ((pred (car ls)) 0)
+      (else (let ((list-index-r (list-index pred (cdr ls))))
+              (if (number? list-index-r)
+                (+ list-index-r 1)
+                #f))))))
+
+;****************************************************************************************
+
+;; Punto 2
+(define buscar-variable
+  (lambda (env sym)
+    (cases environment env
+      (empty-env-record ()
+                        (eopl:error 'buscar-variable "Error, la variable no existe"))
+      (extended-env-record (syms vals old-env)
+                           (let ((pos (list-find-position sym syms)))
+                             (if (number? pos)
+                                 (list-ref vals pos)
+                                 (buscar-variable old-env sym))))
+      )))
+
+(define init-env
+  (lambda ()
+    (extend-env
+     '(@a @b @c @d @e)
+     '(1 2 3 "hola" "FLP")
+     (empty-env))))
+
+
+;****************************************************************************************
+
+(interpretador)
