@@ -80,8 +80,8 @@
     (expresion ("Si" expresion "{" expresion "}" "sino" "{" expresion "}") condicional-exp)
     (expresion ("declarar" "(" (arbno identificador "=" expresion ";") ")" "{" expresion "}") variableLocal-exp)
     (expresion ("procedimiento" "("(separated-list identificador ",")")" "{" expresion "}") procedimiento-exp)
-    (expresion ("letrec" (arbno identificador "(" (separated-list identificador ",") ")" "=" expresion )  "en" expresion) 
-                letrec-exp)
+    ;;(expresion ("letrec" (arbno "[" identificador "(" (arbno identificador) ")" "=" expresion "]")  "en" expresion) 
+      ;;          letrec-exp)
 
     (expresion ("evaluar" expresion "(" (separated-list expresion ",") ")" "finEval") app-exp)
 
@@ -169,8 +169,8 @@
       (procedimiento-exp (listIDs cuerpo)
                          (cerradura listIDs cuerpo amb))
 
-      (letrec-exp (nombresFunciones argumentos cuerposFunciones cuerpoLetrec) 
-                 (evaluar-expresion cuerpoLetrec (extend-env-recursively nombresFunciones argumentos cuerposFunciones amb)))
+      ;;(letrec-exp (nombresFunciones argumentos cuerposFunciones cuerpoLetrec) 
+        ;;         (evaluar-expresion cuerpoLetrec (cerraduraMultiple nombresFunciones argumentos cuerposFunciones amb)))
       
       (app-exp (exp listExps)
                (let ((proc (evaluar-expresion exp amb))
@@ -237,13 +237,7 @@
   (empty-env-record)
   (extended-env-record (syms (list-of symbol?))
                        (vals (list-of scheme-value?))
-                       (env environment?))
-  (recursively-extended-env-record (proc-names (list-of symbol?))
-                                  (idss (list-of (list-of symbol?)))
-                                  (bodies (list-of expresion?))
-                                  (env environment?))
-                                                                                                            
-  )
+                       (env environment?)))
 
 (define scheme-value? (lambda (v) #t))
 
@@ -259,11 +253,6 @@
 (define extend-env
   (lambda (syms vals env)
     (extended-env-record syms vals env)))
-
-(define extend-env-recursively
-  (lambda (proc-names idss bodies old-env)
-    (recursively-extended-env-record proc-names idss bodies old-env)))
-
 
 ;****************************************************************************************
 ;Funciones Auxiliares
@@ -293,20 +282,12 @@
     (cases environment env
       (empty-env-record ()
                         (eopl:error 'buscar-variable "Error, la variable no existe"))
-      
       (extended-env-record (syms vals old-env)
                            (let ((pos (list-find-position sym syms)))
                              (if (number? pos)
                                  (list-ref vals pos)
                                  (buscar-variable old-env sym))))
-      
-      (recursively-extended-env-record (proc-names idss bodies old-env)
-                                       (let ((pos (list-find-position sym proc-names)))
-                                         (if (number? pos)
-                                             (cerradura (list-ref idss pos)
-                                                        (list-ref bodies pos)
-                                                        env)
-                                             (buscar-variable old-env sym)))))))
+      )))
 
 (define init-env
   (lambda ()
@@ -330,6 +311,8 @@
 
 (define-datatype procVal procVal?
   (cerradura (lista-ID (list-of symbol?)) (exp expresion?) (amb environment?)))
+
+;;Punto 8
 
 
 
