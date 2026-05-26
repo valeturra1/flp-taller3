@@ -80,6 +80,9 @@
     (expresion ("Si" expresion "{" expresion "}" "sino" "{" expresion "}") condicional-exp)
     (expresion ("declarar" "(" (arbno identificador "=" expresion ";") ")" "{" expresion "}") variableLocal-exp)
     (expresion ("procedimiento" "("(separated-list identificador ",")")" "{" expresion "}") procedimiento-exp)
+    ;;(expresion ("letrec" (arbno "[" identificador "(" (arbno identificador) ")" "=" expresion "]")  "en" expresion) 
+      ;;          letrec-exp)
+
     (expresion ("evaluar" expresion "(" (separated-list expresion ",") ")" "finEval") app-exp)
 
     
@@ -165,6 +168,9 @@
 
       (procedimiento-exp (listIDs cuerpo)
                          (cerradura listIDs cuerpo amb))
+
+      ;;(letrec-exp (nombresFunciones argumentos cuerposFunciones cuerpoLetrec) 
+        ;;         (evaluar-expresion cuerpoLetrec (cerraduraMultiple nombresFunciones argumentos cuerposFunciones amb)))
       
       (app-exp (exp listExps)
                (let ((proc (evaluar-expresion exp amb))
@@ -305,6 +311,10 @@
 
 (define-datatype procVal procVal?
   (cerradura (lista-ID (list-of symbol?)) (exp expresion?) (amb environment?)))
+
+;;Punto 8
+
+
 
 
 ;****************************************************************************************
