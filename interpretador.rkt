@@ -83,6 +83,7 @@
     ;;(expresion ("letrec" (arbno "[" identificador "(" (arbno identificador) ")" "=" expresion "]")  "en" expresion) 
       ;;          letrec-exp)
 
+    (expresion ("evaluar" expresion "(" (separated-list expresion ",") ")" "finEval") app-exp)
 
     
     (primitiva-binaria ("+") primitiva-suma)
@@ -159,7 +160,6 @@
                          (if (valor-verdad? base) (evaluar-expresion true-exp amb) (evaluar-expresion false-exp amb)) 
                          
                        )
-      
       )
                      
       (variableLocal-exp (ids exps cuerpo)
@@ -171,6 +171,11 @@
 
       ;;(letrec-exp (nombresFunciones argumentos cuerposFunciones cuerpoLetrec) 
         ;;         (evaluar-expresion cuerpoLetrec (cerraduraMultiple nombresFunciones argumentos cuerposFunciones amb)))
+      
+      (app-exp (exp listExps)
+               (let ((proc (evaluar-expresion exp amb))
+                     (args (eval-exps listExps amb)))
+                 (evaluar-proc proc args)))
                          
       )))
       
@@ -214,6 +219,8 @@
                                           1
                                           0))
       )))
+
+
 
 ; funcion auxiliar para aplicar evaluar-expresion a cada elemento de una 
 ; lista de operandos (expresiones)
@@ -298,7 +305,9 @@
           (if (equal? valor 0) #f #t)))
 
 
-;;Punto 6
+;****************************************************************************************
+
+;; Punto 6
 
 (define-datatype procVal procVal?
   (cerradura (lista-ID (list-of symbol?)) (exp expresion?) (amb environment?)))
@@ -308,5 +317,16 @@
 
 
 
-(interpretador)
+;****************************************************************************************
 
+;; Punto 7
+
+(define evaluar-proc
+  (lambda (proc args)
+    (cases procVal proc
+      (cerradura (listaID cuerpo amb)
+               (evaluar-expresion cuerpo (extend-env listaID args amb))))))
+
+;****************************************************************************************
+
+(interpretador)
