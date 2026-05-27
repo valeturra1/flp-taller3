@@ -80,9 +80,8 @@
     (expresion ("Si" expresion "{" expresion "}" "sino" "{" expresion "}") condicional-exp)
     (expresion ("declarar" "(" (arbno identificador "=" expresion ";") ")" "{" expresion "}") variableLocal-exp)
     (expresion ("procedimiento" "("(separated-list identificador ",")")" "{" expresion "}") procedimiento-exp)
-    (expresion ("letrec" (arbno identificador "(" (separated-list identificador ",") ")" "=" expresion )  "en" expresion) 
-                letrec-exp)
-
+    (expresion ("declarar-recursivo" (arbno identificador "(" (separated-list identificador ",") ")" "=" expresion )  "en" expresion) 
+                recursivo-exp)
     (expresion ("evaluar" expresion "(" (separated-list expresion ",") ")" "finEval") app-exp)
 
     
@@ -169,8 +168,8 @@
       (procedimiento-exp (listIDs cuerpo)
                          (cerradura listIDs cuerpo amb))
 
-      (letrec-exp (nombresFunciones argumentos cuerposFunciones cuerpoLetrec) 
-                 (evaluar-expresion cuerpoLetrec (extend-env-recursively nombresFunciones argumentos cuerposFunciones amb)))
+      (recursivo-exp (nombresFunciones argumentos cuerposFunciones cuerpoRecursivo) 
+                 (evaluar-expresion cuerpoRecursivo (extend-env-recursively nombresFunciones argumentos cuerposFunciones amb)))
       
       (app-exp (exp listExps)
                (let ((proc (evaluar-expresion exp amb))
@@ -333,7 +332,6 @@
 
 
 
-
 ;****************************************************************************************
 
 ;; Punto 7
@@ -343,6 +341,25 @@
     (cases procVal proc
       (cerradura (listaID cuerpo amb)
                (evaluar-expresion cuerpo (extend-env listaID args amb))))))
+
+;****************************************************************************************
+
+;; Punto 9
+
+;; a)
+;; declarar-recursivo @div10(@x) = 
+;;   Si (@x < 10)
+;;    {0}
+;;   sino
+;;    {add1(evaluar @div10((@x ~ 10)) finEval)}
+    
+;; @sumarDigitos(@n) = 
+;;   Si (@n == 0) 
+;;    {0} 
+;;   sino 
+;;    {((@n ~ (10 * evaluar @div10(@n) finEval)) + evaluar @sumarDigitos(evaluar @div10(@n) finEval) finEval)}
+;; en
+;; evaluar @sumarDigitos(147) finEval
 
 ;****************************************************************************************
 
