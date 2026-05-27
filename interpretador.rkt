@@ -361,6 +361,16 @@
 ;; en
 ;; evaluar @sumarDigitos(147) finEval
 
+
+;; c)
+;; declarar-recursivo @potencia(@base, @exponente) =
+;;   Si (@exponente == 1)
+;;     {@base}
+;;   sino
+;;     {(@base * evaluar @potencia(@base, (@exponente ~ 1)) finEval)}
+;; en
+;; evaluar @potencia (4, 2) finEval
+
 ;****************************************************************************************
 
 (interpretador)
