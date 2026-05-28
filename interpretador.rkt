@@ -48,6 +48,7 @@
 
 
 ;; Especificación léxica
+;; Define los componentes léxicos básicos (tokens) que el analizador reconocerá a partir del texto de entrada.
 
 (define especificacion-lex
 '((white-sp
@@ -69,6 +70,7 @@
 
 
 ;; Especificación sintáctica (gramática)
+;; Define las reglas de producción de la gramática y asigna las etiquetas de los datatypes que representarán el árbol de sintaxis abstracta (AST).
 
 (define gramatica
   '((programa (expresion) un-programa)
@@ -105,19 +107,19 @@
 
 ;******************************************************************************************
 
-;; Construidos automáticamente:
+;; Construidos automáticamente por SLLGeng para manejar las estructuras del AST.
 
 (sllgen:make-define-datatypes especificacion-lex gramatica)
 
 ;******************************************************************************************
 
 ;; El FrontEnd (Análisis léxico (scanner) y sintáctico (parser) integrados)
-
+;; Toma un string de entrada y genera el árbol de sintaxis abstracta correspondiente según las reglas.
 (define scan&parse
   (sllgen:make-string-parser especificacion-lex gramatica))
 
-;El Interpretador (FrontEnd + Evaluación + señal para lectura )
-
+;; El Interpretador (FrontEnd + Evaluación + señal para lectura )
+;; Inicia el bucle REPL para leer expresiones del usuario, evaluarlas y mostrar los resultados.
 (define interpretador
   (sllgen:make-rep-loop  "--> "
     (lambda (pgm) (eval-program  pgm)) 
@@ -127,8 +129,8 @@
 
 ;El Interprete
 
-;evaluar-programa: <programa> -> numero
-; función que evalúa un programa teniendo en cuenta un ambiente dado (se inicializa dentro del programa)
+;; eval-program: <programa> -> expresion-evaluada
+;; Desempaqueta el programa principal y arranca la evaluación de la expresión raíz usando el ambiente inicial.
 
 (define eval-program
   (lambda (pgm)
@@ -136,8 +138,9 @@
       (un-programa (body)
                  (evaluar-expresion body (init-env))))))
 
-;; evaluar-expresion: <expresion> <ambiente> -> numero
-;; evalua la expresión en el ambiente de entrada
+;; evaluar-expresion: <expresion> <ambiente> -> valor-expresado
+;; Es el motor del intérprete. Recorre el árbol de sintaxis abstracta (AST) de forma recursiva 
+;; y computa el resultado de la expresión según el tipo de nodo y el ambiente actual.
 (define evaluar-expresion
   (lambda (exp amb)
     (cases expresion exp
@@ -179,7 +182,8 @@
       )))
       
 
-;apply-primitive: <primitiva> <list-of-expression> -> numero
+;; apply-primitive-bin: <primitiva-binaria> <valor> <valor> -> valor
+;; Ejecuta las operaciones matemáticas, lógicas o de concatenación que requieren dos operandos.
 (define apply-primitive-bin
   (lambda (prim arg1 arg2)
     (cases primitiva-binaria prim
@@ -208,6 +212,8 @@
                                      0))
       )))
 
+;; apply-primitive-un: <primitiva-unaria> <valor> -> valor
+;; Resuelve operaciones unarias operando sobre un único argumento (ej. longitud de strings o incrementos numéricos).
 (define apply-primitive-un
   (lambda (prim arg)
     (cases primitiva-unaria prim
@@ -221,8 +227,8 @@
 
 
 
-; funcion auxiliar para aplicar evaluar-expresion a cada elemento de una 
-; lista de operandos (expresiones)
+;; eval-exps: <list-of-expresion> <ambiente> -> list-of-valores
+;; Transforma una lista de expresiones sin evaluar en sus valores correspondientes aplicando mapeo recursivo.
 (define eval-exps
   (lambda (exps amb)
     (map (lambda (x) (evaluar-expresion x amb)) exps)))
@@ -231,7 +237,8 @@
 ;*******************************************************************************************
 ;Ambientes
 
-;definición del tipo de dato ambiente
+;; Tipo de dato environment
+;; Representa los registros de activación en memoria utilizando una estructura jerárquica para soportar alcance estático y recursión.
 (define-datatype environment environment?
   (empty-env-record)
   (extended-env-record (syms (list-of symbol?))
@@ -244,21 +251,25 @@
                                                                                                             
   )
 
+;; scheme-value?: -> boolean
+;; Predicado utilitario que permite aceptar cualquier tipo de dato nativo de Scheme/Racket dentro de los ambientes.
 (define scheme-value? (lambda (v) #t))
 
-;empty-env:      -> enviroment
-;función que crea un ambiente vacío
+;; empty-env: -> environment
+;; Constructor que genera un ambiente completamente limpio y sin variables (caso base de la memoria).
 (define empty-env  
   (lambda ()
     (empty-env-record)))       ;llamado al constructor de ambiente vacío 
 
 
-;extend-env: <list-of symbols> <list-of numbers> enviroment -> enviroment
-;función que crea un ambiente extendido
+;; extend-env: <list-of-symbols> <list-of-values> <environment> -> environment
+;; Añade variables locales vinculando sus identificadores con sus valores en un nuevo marco de ambiente extendido.
 (define extend-env
   (lambda (syms vals env)
     (extended-env-record syms vals env)))
 
+;; extend-env-recursively: <list-of-symbols> <list-of-lists-of-symbols> <list-of-expressions> <environment> -> environment
+;; Crea un ambiente preparado para recursión asociando nombres de funciones y parámetros sin evaluar sus cuerpos prematuramente.
 (define extend-env-recursively
   (lambda (proc-names idss bodies old-env)
     (recursively-extended-env-record proc-names idss bodies old-env)))
@@ -267,13 +278,14 @@
 ;****************************************************************************************
 ;Funciones Auxiliares
 
-; funciones auxiliares para encontrar la posición de un símbolo
-; en la lista de símbolos de unambiente
-
+;; list-find-position: <symbol> <list-of-symbols> -> integer o #f
+;; Determina el índice numérico de un identificador dentro de una lista de variables para facilitar su posterior extracción.
 (define list-find-position
   (lambda (sym los)
     (list-index (lambda (sym1) (eqv? sym1 sym)) los)))
 
+;; list-index: <procedure> <list> -> integer o #f
+;; Función iterativa que busca qué posición de la lista satisface el predicado enviado por parámetro.
 (define list-index
   (lambda (pred ls)
     (cond
@@ -287,6 +299,8 @@
 ;****************************************************************************************
 
 ;; Punto 2
+;; buscar-variable: <environment> <symbol> -> valor
+;; Explora de manera ascendente los ámbitos del ambiente buscando el símbolo solicitado. Si llega al ambiente vacío, arroja error.
 (define buscar-variable
   (lambda (env sym)
     (cases environment env
@@ -307,6 +321,8 @@
                                                         env)
                                              (buscar-variable old-env sym)))))))
 
+;; init-env: -> environment
+;; Genera el ambiente global inicial cargando las constantes requeridas por el enunciado (@a, @b, @c, @d, @e).
 (define init-env
   (lambda ()
     (extend-env
@@ -318,7 +334,8 @@
 ;****************************************************************************************
 ;;Punto 3
 
-
+;; valor-verdad?: <valor> -> boolean
+;; Regla semántica que mapea el valor numérico 0 como un falso lógico (#f) y cualquier otra cantidad como verdadero (#t).
 (define valor-verdad? (lambda (valor)
           (if (equal? valor 0) #f #t)))
 
@@ -327,6 +344,8 @@
 
 ;; Punto 6
 
+;; Tipo de dato para las cerraduras (procVal)
+;; Representa los procedimientos encapsulando sus argumentos, cuerpo lógico y el ambiente exacto de su declaración.
 (define-datatype procVal procVal?
   (cerradura (lista-ID (list-of symbol?)) (exp expresion?) (amb environment?)))
 
@@ -336,6 +355,8 @@
 
 ;; Punto 7
 
+;; evaluar-proc: <procVal> <list-of-values> -> valor
+;; Aplica un procedimiento vinculando los argumentos reales con los formales y evaluando su cuerpo en el ambiente guardado.
 (define evaluar-proc
   (lambda (proc args)
     (cases procVal proc
@@ -345,8 +366,10 @@
 ;****************************************************************************************
 
 ;; Punto 9
+;; Códigos de los programas escritos en el lenguaje diseñado.
 
-;; a)
+;; a) Procedimiento recursivo para sumar los dígitos de un número entero positivo.
+
 ;; declarar-recursivo @div10(@x) = 
 ;;   Si (@x < 10)
 ;;    {0}
@@ -362,7 +385,7 @@
 ;; evaluar @sumarDigitos(147) finEval
 
 
-;;b)
+;; b) Procedimiento recursivo para calcular el factorial de un número n.
 
 ;;Prueba con 5
 
@@ -381,7 +404,9 @@
 ;;en
 ;; evaluar @factorial (10) finEval      
 
-;; c)
+
+;; c) Procedimiento recursivo para calcular la potencia de una base elevada a un exponente.
+
 ;; declarar-recursivo @potencia(@base, @exponente) =
 ;;   Si (@exponente == 1)
 ;;     {@base}
@@ -391,14 +416,16 @@
 ;; evaluar @potencia (4, 2) finEval
 
 
-;;d)
+;; d) Procedimiento recursivo para sumar los números contenidos en un rango positivo cerrado [a, b].
 
 ;;declarar-recursivo @sumaRango (@a, @b) =
 ;; Si (@a == @b) {@a} sino {(@a + evaluar @sumaRango ((@a+1), @b) finEval)}
 ;;en
 ;;evaluar @sumaRango (2,5) finEval
 
-;; e)
+
+;; e) Implementación de un Decorador simple de funciones en programación funcional.
+
 ;; declarar (
 ;; @integrantes =
 ;;     procedimiento() {"Valeria_y_Juan"};
@@ -415,7 +442,9 @@
 ;;    {evaluar @decorate() finEval}
 ;;  }
 
-;; f)
+
+;; f) Modificación del decorador funcional para aceptar un mensaje dinámico de sufijo al final del string.
+
 ;; declarar (
 ;; @integrantes =
 ;;     procedimiento() {"Valeria_y_Juan"};
