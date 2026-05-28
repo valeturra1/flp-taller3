@@ -371,6 +371,24 @@
 ;; en
 ;; evaluar @potencia (4, 2) finEval
 
+
+;; e)
+;; declarar (
+;; @integrantes =
+;;     procedimiento() {"Valeria_y_Juan"};
+
+;; @saludar =
+;;     procedimiento(@funcion){
+;;       procedimiento()
+;;         {("Hola_" concat evaluar @funcion() finEval)}
+;;       };
+;; )
+;;  {declarar (
+;;    @decorate = evaluar @saludar(@integrantes) finEval;
+;;  )
+;;    {evaluar @decorate() finEval}
+;;  }
+
 ;****************************************************************************************
 
 (interpretador)
