@@ -390,7 +390,13 @@
 ;; en
 ;; evaluar @potencia (4, 2) finEval
 
-<<<<<<< Updated upstream
+
+;;d)
+
+;;declarar-recursivo @sumaRango (@a, @b) =
+;; Si (@a == @b) {@a} sino {(@a + evaluar @sumaRango ((@a+1), @b) finEval)}
+;;en
+;;evaluar @sumaRango (2,5) finEval
 
 ;; e)
 ;; declarar (
@@ -408,14 +414,26 @@
 ;;  )
 ;;    {evaluar @decorate() finEval}
 ;;  }
-=======
-;;d)
 
-;;declarar-recursivo @sumaRango (@a, @b) =
-;; Si (@a == @b) {@a} sino {(@a + evaluar @sumaRango ((@a+1), @b) finEval)}
-;;en
-;;evaluar @sumaRango (2,5) finEval
->>>>>>> Stashed changes
+;; f)
+;; declarar (
+;; @integrantes =
+;;     procedimiento() {"Valeria_y_Juan"};
+
+;; @saludar =
+;;     procedimiento(@funcion){
+;;     procedimiento(@mensaje) {
+;;         (("Hola_" concat evaluar @funcion() finEval) concat @mensaje)}
+;;       };
+
+;; )
+;;  {declarar (
+;;    @decorate = evaluar @saludar(@integrantes) finEval;
+;;  )
+;;    {evaluar @decorate("ProfesoresFLP") finEval}
+;;  }
+
+
 
 ;****************************************************************************************
 
