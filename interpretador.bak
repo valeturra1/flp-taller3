@@ -362,25 +362,6 @@
 ;; evaluar @sumarDigitos(147) finEval
 
 
-;;b)
-
-;;Prueba con 5
-
-;;declarar-recursivo @factorial (@n) =
-;;                   Si (@n==1) {1} sino {
-;;                                       (@n * evaluar @factorial ((@n ~ 1)) finEval )}
-;;en
-;; evaluar @factorial (5) finEval
-
-
-;;Prueba con 10
-
-;;declarar-recursivo @factorial (@n) =
-;;                   Si (@n==1) {1} sino {
-;;                                       (@n * evaluar @factorial ((@n ~ 1)) finEval )}
-;;en
-;; evaluar @factorial (10) finEval      
-
 ;; c)
 ;; declarar-recursivo @potencia(@base, @exponente) =
 ;;   Si (@exponente == 1)
@@ -389,33 +370,6 @@
 ;;     {(@base * evaluar @potencia(@base, (@exponente ~ 1)) finEval)}
 ;; en
 ;; evaluar @potencia (4, 2) finEval
-
-<<<<<<< Updated upstream
-
-;; e)
-;; declarar (
-;; @integrantes =
-;;     procedimiento() {"Valeria_y_Juan"};
-
-;; @saludar =
-;;     procedimiento(@funcion){
-;;       procedimiento()
-;;         {("Hola_" concat evaluar @funcion() finEval)}
-;;       };
-;; )
-;;  {declarar (
-;;    @decorate = evaluar @saludar(@integrantes) finEval;
-;;  )
-;;    {evaluar @decorate() finEval}
-;;  }
-=======
-;;d)
-
-;;declarar-recursivo @sumaRango (@a, @b) =
-;; Si (@a == @b) {@a} sino {(@a + evaluar @sumaRango ((@a+1), @b) finEval)}
-;;en
-;;evaluar @sumaRango (2,5) finEval
->>>>>>> Stashed changes
 
 ;****************************************************************************************
 
